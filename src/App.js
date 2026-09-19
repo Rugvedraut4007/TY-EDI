@@ -1,9 +1,14 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Register from "./pages/Register";
+
 function App() {
   return (
-    <div>
-      <h1>Central Medicine System</h1>
-      <p>Track medicines, prices, and manufacturers.</p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Register />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
