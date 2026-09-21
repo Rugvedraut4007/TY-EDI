@@ -1,0 +1,537 @@
+* {
+  box-sizing: border-box;
+}
+
+.auth-page {
+  min-height: 100vh;
+  width: 100%;
+  background: #f5f7fb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 20px;
+  font-family: Arial, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated background glow */
+.auth-page::before,
+.auth-page::after {
+  content: "";
+  position: absolute;
+  width: 450px;
+  height: 450px;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.auth-page::before {
+  background: #6366f1;
+  top: -180px;
+  left: -120px;
+  animation: floatingGlow 8s ease-in-out infinite;
+}
+
+.auth-page::after {
+  background: #a855f7;
+  bottom: -200px;
+  right: -120px;
+  animation: floatingGlow 10s ease-in-out infinite reverse;
+}
+
+@keyframes floatingGlow {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(35px, 25px) scale(1.08);
+  }
+}
+
+/* =========================
+   AUTH CARD
+========================= */
+
+.auth-card {
+  width: 100%;
+  max-width: 450px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  padding: 42px;
+  box-shadow: 0 25px 70px rgba(31, 41, 55, 0.12);
+  position: relative;
+  z-index: 2;
+
+  animation: cardEntrance 0.7s ease-out;
+}
+
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(25px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================
+   LOGO
+========================= */
+
+.auth-logo {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-logo-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #eef2ff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 25px;
+  flex-shrink: 0;
+}
+
+.auth-logo h1 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1;
+  color: #1f2937;
+}
+
+
+/* =========================
+   HEADING
+========================= */
+
+.auth-heading {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-heading h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.auth-heading p {
+  margin: 10px 0 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* =========================
+   GOOGLE BUTTON
+========================= */
+
+.google-button {
+  width: 100%;
+  height: 48px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #3c4043;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.google-button:hover {
+  background: #f8f9fa;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.google-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* =========================
+   DIVIDER
+========================= */
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 25px 0;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: #e5e7eb;
+}
+
+.auth-divider span {
+  font-weight: 500;
+}
+
+/* =========================
+   FORM
+========================= */
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #9ca3af;
+  border-radius: 14px;
+  font-size: 16px;
+  box-sizing: border-box;
+  color: #1f2937;
+  background: #ffffff;
+}
+
+.form-group input::placeholder {
+  color: #9ca3af;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #4f46e5;
+}
+
+.form-group input.input-error {
+  border-color: #ef4444;
+}
+
+/* =========================
+   PASSWORD
+========================= */
+
+.password-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.forgot-password {
+  display: block;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin-top: 12px;
+  margin-left: auto;
+  color: #4f46e5;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 50px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  padding: 7px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  opacity: 1;
+}
+
+.password-toggle img[src*="eye-off"] {
+  width: 32px;
+  height: 32px;
+}
+
+.password-toggle:hover img {
+  opacity: 1;
+}
+
+/* =========================
+   VALIDATION
+========================= */
+
+.field-error {
+  display: block;
+  margin-top: 6px;
+  color: #dc2626;
+  font-size: 12px;
+}
+
+.auth-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 8px;
+  padding: 11px 13px;
+  margin-bottom: 18px;
+  font-size: 13px;
+}
+
+/* =========================
+   LOGIN BUTTON
+========================= */
+
+.auth-button {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 9px;
+  background: #4f46e5;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.auth-button:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.auth-button:disabled {
+  background: #818cf8;
+  cursor: not-allowed;
+}
+
+/* =========================
+   LOADING SPINNER
+========================= */
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================
+   REGISTER
+========================= */
+
+.register-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  margin-top: 25px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.register-section button {
+  border: none;
+  background: transparent;
+  color: #4f46e5;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.register-section button:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   FOOTER
+========================= */
+
+.auth-footer {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 11px;
+  margin: 28px 0 0;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 500px) {
+  .auth-page {
+    padding: 15px;
+  }
+
+  .auth-card {
+    padding: 30px 22px;
+    border-radius: 16px;
+  }
+
+  .auth-heading h2 {
+    font-size: 25px;
+  }
+}
+
+/* =========================
+   SUBTLE CARD HOVER
+========================= */
+
+.auth-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* =========================
+   LOGO ANIMATION
+========================= */
+
+.auth-logo-icon {
+  animation: logoFloat 3s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-4px) rotate(3deg);
+  }
+}
+
+/* =========================
+   GOOGLE BUTTON
+========================= */
+
+.google-button {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.google-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(31, 41, 55, 0.1);
+}
+
+/* =========================
+   INPUT ANIMATION
+========================= */
+
+.form-group input {
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.form-group input:focus {
+  transform: translateY(-1px);
+}
+
+/* =========================
+   LOGIN BUTTON
+========================= */
+
+.auth-button {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.auth-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+}
+
+.auth-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Button shine */
+
+.auth-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.auth-button:hover::before {
+  left: 130%;
+}

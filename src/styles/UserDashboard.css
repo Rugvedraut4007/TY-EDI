@@ -1,0 +1,312 @@
+* {
+  box-sizing: border-box;
+}
+
+.user-dashboard {
+  min-height: 100vh;
+  display: flex;
+  background: #f5f7fb;
+  color: #1f2937;
+  font-family: Arial, sans-serif;
+}
+
+/* Sidebar */
+
+.sidebar {
+  width: 250px;
+  min-height: 100vh;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  padding: 25px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 30px;
+}
+
+.logo span {
+  font-size: 30px;
+}
+
+.logo h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-item {
+  border: none;
+  background: transparent;
+  padding: 13px 15px;
+  text-align: left;
+  border-radius: 10px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.logout-button {
+  margin-top: auto;
+  border: none;
+  background: #fff1f2;
+  color: #e11d48;
+  padding: 13px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+/* Main */
+
+.main-content {
+  flex: 1;
+  padding: 35px 45px;
+  overflow-y: auto;
+}
+
+/* Header */
+
+.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 35px;
+}
+
+.welcome-text {
+  color: #6b7280;
+  margin: 0 0 5px;
+}
+
+.top-header h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+}
+
+.profile p {
+  margin: 3px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+/* Search */
+
+.search-section {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: white;
+  padding: 30px;
+  border-radius: 18px;
+  margin-bottom: 35px;
+}
+
+.search-section h2 {
+  margin: 0 0 8px;
+}
+
+.search-section p {
+  margin: 0 0 22px;
+  opacity: 0.9;
+}
+
+.search-box {
+  background: white;
+  padding: 6px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.search-box span {
+  padding: 0 12px;
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 12px 5px;
+  font-size: 15px;
+}
+
+.search-box button {
+  border: none;
+  background: #4f46e5;
+  color: white;
+  padding: 12px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Sections */
+
+.section {
+  margin-bottom: 35px;
+}
+
+.section h2 {
+  margin-bottom: 18px;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.action-card {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  border: 1px solid #e5e7eb;
+  transition: 0.2s;
+}
+
+.action-card:hover {
+  transform: translateY(-3px);
+}
+
+.action-icon {
+  font-size: 30px;
+  margin-bottom: 15px;
+}
+
+.action-card h3 {
+  margin: 0 0 8px;
+}
+
+.action-card p {
+  color: #6b7280;
+  line-height: 1.5;
+  min-height: 45px;
+}
+
+.action-card button,
+.view-all {
+  border: none;
+  background: transparent;
+  color: #4f46e5;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Medicine */
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-header p {
+  color: #6b7280;
+  margin-top: -10px;
+}
+
+.medicine-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.medicine-card {
+  background: white;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+}
+
+.medicine-image {
+  background: #eef2ff;
+  border-radius: 10px;
+  height: 110px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 45px;
+  margin-bottom: 15px;
+}
+
+.medicine-card h3 {
+  margin: 0 0 6px;
+}
+
+.medicine-card p {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+
+.medicine-card strong {
+  font-size: 18px;
+}
+
+/* Responsive */
+
+@media (max-width: 1000px) {
+  .sidebar {
+    width: 210px;
+  }
+
+  .action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .medicine-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .sidebar {
+    display: none;
+  }
+
+  .main-content {
+    padding: 25px 20px;
+  }
+
+  .top-header {
+    align-items: flex-start;
+  }
+
+  .profile {
+    display: none;
+  }
+
+  .medicine-grid {
+    grid-template-columns: 1fr;
+  }
+}
