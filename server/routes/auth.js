@@ -1,115 +1,87 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const pool = require("../db");
+const { sign, auth } = require("../middleware/auth");
+const { asyncH } = require("../lib/helpers");
 
 const router = express.Router();
 
-// Register
-router.post("/register", async (req, res) => {
-  try {
-    const { name, email, password, role } = req.body;
+const PUBLIC_ROLES = ["manufacturer", "distributor", "pharmacist", "customer"];
 
-    // Check required fields
+// Register (admin accounts are seeded, never self-registered)
+router.post(
+  "/register",
+  asyncH(async (req, res) => {
+    const { name, email, password, role, phone, address, org_name, license_no } = req.body;
+
     if (!name || !email || !password || !role) {
-      return res.status(400).json({
-        message: "All fields are required",
-      });
+      return res.status(400).json({ message: "Name, email, password and role are required" });
+    }
+    if (!PUBLIC_ROLES.includes(role)) {
+      return res.status(400).json({ message: "Invalid account type" });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
-    // Check valid role
-    if (!["user", "pharmacist", "manufacturer"].includes(role)) {
-      return res.status(400).json({
-        message: "Invalid role",
-      });
+    const existing = await pool.query("SELECT id FROM users WHERE email = $1", [email.toLowerCase()]);
+    if (existing.rows.length) {
+      return res.status(400).json({ message: "Email already registered" });
     }
 
-    // Check if email already exists
-    const existingUser = await pool.query(
-      "SELECT id FROM users WHERE email = $1",
-      [email]
-    );
-
-    if (existingUser.rows.length > 0) {
-      return res.status(400).json({
-        message: "Email already registered",
-      });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
+    const hashed = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      `INSERT INTO users (name, email, password, role)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, name, email, role`,
-      [name, email, hashedPassword, role]
+      `INSERT INTO users (name, email, password, role, phone, address, org_name, license_no)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+       RETURNING id, name, email, role, org_name`,
+      [name, email.toLowerCase(), hashed, role, phone || null, address || null, org_name || null, license_no || null]
     );
 
-    res.status(201).json({
-      message: "Registration successful",
-      user: result.rows[0],
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "Server error",
-    });
-  }
-});
+    const user = result.rows[0];
+    res.status(201).json({ message: "Registration successful", token: sign(user), user });
+  })
+);
 
 // Login
-router.post("/login", async (req, res) => {
-  try {
+router.post(
+  "/login",
+  asyncH(async (req, res) => {
     const { email, password } = req.body;
-
-    // Check required fields
     if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and password are required",
-      });
+      return res.status(400).json({ message: "Email and password are required" });
     }
 
-    // Find user
-    const result = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
-      [email]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(401).json({
-        message: "Invalid email or password",
-      });
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email.toLowerCase()]);
+    if (!result.rows.length) {
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const user = result.rows[0];
-
-    // Check password
-    const passwordMatch = await bcrypt.compare(password, user.password);
-
-    if (!passwordMatch) {
-      return res.status(401).json({
-        message: "Invalid email or password",
-      });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Login successful
-    res.status(200).json({
+    res.json({
       message: "Login successful",
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      token: sign(user),
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, org_name: user.org_name },
     });
-  } catch (error) {
-    console.error(error);
+  })
+);
 
-    res.status(500).json({
-      message: "Server error",
-    });
-  }
-});
+// Current session
+router.get(
+  "/me",
+  auth,
+  asyncH(async (req, res) => {
+    const { rows } = await pool.query(
+      "SELECT id, name, email, role, phone, address, org_name, license_no FROM users WHERE id = $1",
+      [req.user.id]
+    );
+    if (!rows.length) return res.status(404).json({ message: "User not found" });
+    res.json({ user: rows[0] });
+  })
+);
 
 module.exports = router;
