@@ -78,8 +78,7 @@ const TITLES = {
 function Overview({ stats, complaints, onGo }) {
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Approved medicines" value={stats?.medicines ?? 0} icon="💊" />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard label="My complaints" value={stats?.complaints ?? 0} icon="📣" tone="info" />
         <StatCard label="Open complaints" value={stats?.openComplaints ?? 0} icon="⏳" tone="warn" />
         <StatCard label="Bills on record" value={stats?.bills ?? 0} icon="🧾" tone="ink" />
@@ -190,10 +189,7 @@ function SearchTab() {
                 <h3 className="text-base font-bold text-ink-900">{m.name}</h3>
                 <p className="text-xs text-ink-500">{m.generic_name} · {m.strength} · {m.dosage_form}</p>
                 <p className="mt-2 text-xs text-ink-400">by {m.manufacturer_org || m.manufacturer_name}</p>
-                <div className="mt-3 flex items-center justify-between">
-                  <Badge status={m.available_qty > 0 ? "approved" : "sold_out"}>
-                    {m.available_qty > 0 ? `${m.available_qty} units available` : "Out of stock"}
-                  </Badge>
+                <div className="mt-3 flex items-center justify-end">
                   <Button variant="ghost" className="btn-sm" onClick={() => setSelected(m)}>Details</Button>
                 </div>
               </div>
@@ -209,7 +205,6 @@ function SearchTab() {
               <Info label="Generic name" value={selected.generic_name} />
               <Info label="Dosage form" value={selected.dosage_form} />
               <Info label="Official price" value={`₹${Number(selected.official_price).toFixed(2)}`} highlight />
-              <Info label="Availability" value={`${selected.available_qty} units`} />
               <Info label="Manufacturer" value={selected.manufacturer_org || selected.manufacturer_name} />
               <Info label="Status" value={<Badge status="approved">Approved by MedSure</Badge>} />
             </div>

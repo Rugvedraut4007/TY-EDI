@@ -6,7 +6,7 @@ import {
   Badge, Button, Card, CardHeader, EmptyState, Field, Input, LoadingBlock, Modal,
   SearchInput, Select, StatCard, StatusBadge, Table, Textarea,
 } from "../../components/UI";
-import { BarChart, Donut } from "../../components/Charts";
+import { Donut } from "../../components/Charts";
 import TraceTimeline, { ChainStages, ChainStatus } from "../../components/TraceTimeline";
 import { ScanInput } from "../../components/QRPanel";
 
@@ -130,10 +130,7 @@ function Overview({ stats, flags, complaints, onGo }) {
         <StatCard label="Open complaints" value={c.openComplaints ?? 0} icon="📣" tone="danger" hint={`${c.complaints ?? 0} total`} />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <BarChart title="Bills — last 7 days" subtitle="Daily pharmacy transactions" data={stats?.salesTrend || []} valueKey="count" />
-        </div>
+      <div className="mx-auto w-full max-w-lg">
         <Donut title="Medicines by status" subtitle="Approval pipeline" data={stats?.statusBreakdown || []} />
       </div>
 
@@ -367,7 +364,7 @@ function Prices({ medicines, search, setSearch, reload }) {
         {medicines.length === 0 ? (
           <EmptyState icon="💰" title="No approved medicines" message="Approve a submission to set its official price." />
         ) : (
-          <Table headers={["Medicine", "Manufacturer", "Official price", "Available", ""]}>
+          <Table headers={["Medicine", "Manufacturer", "Official price", ""]}>
             {medicines.map((m) => (
               <tr key={m.id} className="hover:bg-ink-50/60">
                 <td className="td">
@@ -376,7 +373,6 @@ function Prices({ medicines, search, setSearch, reload }) {
                 </td>
                 <td className="td">{m.manufacturer_org || m.manufacturer_name}</td>
                 <td className="td"><span className="text-base font-bold text-brand-700">₹{Number(m.official_price).toFixed(2)}</span></td>
-                <td className="td">{m.available_qty || 0} units</td>
                 <td className="td text-right">
                   <Button variant="outline" className="btn-sm" onClick={() => { setEdit(m); setPrice(String(m.official_price)); }}>
                     Update price

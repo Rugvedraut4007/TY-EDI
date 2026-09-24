@@ -11,7 +11,9 @@ const ORDER_FIELDS = `
   o.*,
   m.name AS medicine_name, m.strength, m.dosage_form, m.official_price,
   ph.name AS pharmacist_name, ph.org_name AS pharmacist_org,
-  d.name AS distributor_name, d.org_name AS distributor_org
+  d.name AS distributor_name, d.org_name AS distributor_org,
+  sh.shipment_code AS shipment_code, sh.status AS shipment_status,
+  (SELECT b.qr_id FROM batches b WHERE b.shipment_id = o.shipment_id ORDER BY b.id LIMIT 1) AS shipment_qr
 `;
 
 router.get(
@@ -35,6 +37,7 @@ router.get(
          JOIN medicines m ON m.id = o.medicine_id
          JOIN users ph ON ph.id = o.pharmacist_id
          JOIN users d ON d.id = o.distributor_id
+         LEFT JOIN shipments sh ON sh.id = o.shipment_id
          ${where}
         ORDER BY o.created_at DESC`,
       params

@@ -235,6 +235,12 @@ function Receive({ shipments, reload }) {
         subtitle={selected ? `${selected.medicine_name} · ${selected.quantity} units` : ""}>
         {selected && (
           <div className="space-y-4">
+            <div className="space-y-1 rounded-xl bg-ink-50 p-4 text-xs text-ink-600">
+              <p>Shipment <span className="font-mono font-semibold text-ink-800">{selected.shipment_code}</span></p>
+              <p>Batch <span className="font-mono font-semibold text-ink-800">{selected.batch_no}</span></p>
+              <p>From {selected.from_org || selected.from_name}</p>
+              {selected.expiry_date && <p>Expires {new Date(selected.expiry_date).toLocaleDateString()}</p>}
+            </div>
             <QRPanel value={selected.qr_id} title="Package QR" subtitle={selected.qr_id} size={130} />
             <Button className="w-full" loading={busy} onClick={() => receive(selected)}>Confirm receipt</Button>
           </div>

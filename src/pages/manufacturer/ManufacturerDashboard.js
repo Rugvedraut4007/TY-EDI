@@ -152,7 +152,9 @@ function Overview({ stats, medicines, shipments, onGo }) {
 
 /* ------------------------------ Medicines ------------------------------ */
 function MedicinesTab({ medicines, search, setSearch, onAdd }) {
+  const [reasonFor, setReasonFor] = useState(null);
   return (
+    <>
     <Card>
       <CardHeader
         title="Medicine catalogue"
@@ -169,7 +171,7 @@ function MedicinesTab({ medicines, search, setSearch, onAdd }) {
         <EmptyState icon="💊" title="No medicines found" message="Add a medicine to submit it for admin approval."
           action={<Button onClick={onAdd}>Add medicine</Button>} />
       ) : (
-        <Table headers={["Medicine", "Dosage form", "Price", "Official price", "Status", "Note"]}>
+        <Table headers={["Medicine", "Dosage form", "Price", "Official price", "Status"]}>
           {medicines.map((m) => (
             <tr key={m.id} className="hover:bg-ink-50/60">
               <td className="td">
@@ -183,21 +185,34 @@ function MedicinesTab({ medicines, search, setSearch, onAdd }) {
                   <span className="font-semibold text-brand-700">₹{Number(m.official_price).toFixed(2)}</span>
                 ) : <span className="text-ink-300">—</span>}
               </td>
-              <td className="td"><StatusBadge status={m.status} /></td>
-              <td className="td max-w-[220px]">
-                {m.status === "rejected" ? (
-                  <span className="text-xs text-red-600">{m.rejection_reason}</span>
-                ) : m.status === "pending" ? (
-                  <span className="text-xs text-ink-400">Awaiting admin review</span>
-                ) : (
-                  <span className="text-xs text-brand-600">Live in {m.available_qty || 0} units at pharmacies</span>
-                )}
+              <td className="td">
+                <div className="flex items-center gap-2">
+                  <StatusBadge status={m.status} />
+                  {m.status === "rejected" && (
+                    <button className="link text-xs" onClick={() => setReasonFor(m)}>Reason</button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
         </Table>
       )}
     </Card>
+
+      <Modal open={Boolean(reasonFor)} onClose={() => setReasonFor(null)} title="Submission rejected" size="sm"
+        subtitle={reasonFor ? `${reasonFor.name} ${reasonFor.strength}` : ""}>
+        {reasonFor && (
+          <div className="space-y-4">
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+              {reasonFor.rejection_reason || "No reason was recorded."}
+            </div>
+            <p className="text-xs text-ink-500">
+              Correct the issue and submit the medicine again for admin approval.
+            </p>
+          </div>
+        )}
+      </Modal>
+    </>
   );
 }
 

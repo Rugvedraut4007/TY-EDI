@@ -36,7 +36,9 @@ router.get(
          JOIN medicines m ON m.id = s.medicine_id
          JOIN users fu ON fu.id = s.from_id
          JOIN users tu ON tu.id = s.to_id
-         LEFT JOIN batches b ON b.shipment_id = s.id AND b.parent_qr_id IS NULL
+         LEFT JOIN LATERAL (
+           SELECT * FROM batches WHERE shipment_id = s.id ORDER BY id LIMIT 1
+         ) b ON true
          ${where}
         ORDER BY s.created_at DESC`,
       params
@@ -55,7 +57,9 @@ router.get(
          JOIN medicines m ON m.id = s.medicine_id
          JOIN users fu ON fu.id = s.from_id
          JOIN users tu ON tu.id = s.to_id
-         LEFT JOIN batches b ON b.shipment_id = s.id AND b.parent_qr_id IS NULL
+         LEFT JOIN LATERAL (
+           SELECT * FROM batches WHERE shipment_id = s.id ORDER BY id LIMIT 1
+         ) b ON true
         WHERE s.id = $1`,
       [req.params.id]
     );
@@ -203,8 +207,11 @@ router.post(
       return res.status(400).json({ message: "Shipment already received" });
     }
 
+    // The batch attached to a shipment is the one created with it. Split and
+    // order dispatches attach a *child* batch (parent_qr_id set), so filtering
+    // on parent_qr_id IS NULL would silently find nothing and skip the transfer.
     const { rows: batchRows } = await pool.query(
-      "SELECT * FROM batches WHERE shipment_id = $1 AND parent_qr_id IS NULL",
+      "SELECT * FROM batches WHERE shipment_id = $1 ORDER BY id LIMIT 1",
       [shipment.id]
     );
     const batch = batchRows[0];
@@ -232,6 +239,14 @@ router.post(
         `INSERT INTO shipment_events (shipment_id, status, note, actor_role, actor_id)
          VALUES ($1,'received',$2,$3,$4)`,
         [shipment.id, `Received via QR scan${batch ? ` (${batch.qr_id})` : ""}`, req.user.role, req.user.id]
+      );
+
+      // Close out the pharmacist order this shipment was dispatched for, so the
+      // distributor no longer sees it as "awaiting receipt" forever.
+      await client.query(
+        `UPDATE orders SET status = 'completed', updated_at = now()
+          WHERE shipment_id = $1 AND status = 'dispatched'`,
+        [shipment.id]
       );
 
       await appendLedger(client, {

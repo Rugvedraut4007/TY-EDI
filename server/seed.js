@@ -218,6 +218,13 @@ async function main() {
   });
   await pool.query(`UPDATE batches SET remaining_qty = 0, state = 'sold_out' WHERE qr_id = 'MED-AZI20260720-001'`);
 
+  // A second Azithromycin batch so that the pending order below is dispatchable
+  // right after seeding (dist1 must hold the ordered medicine to fulfil it).
+  await makeHop({
+    code: "SHP-AZI-003", medicine: azithro, from: mfr2, fromRole: "manufacturer", to: dist1, toRole: "distributor",
+    qr: "MED-AZI20260720-003", batchNo: "AZI20260720", qty: 60, expiry, complete: true,
+  });
+
   // An order waiting for the distributor
   await pool.query(
     `INSERT INTO orders (order_code, pharmacist_id, distributor_id, medicine_id, quantity, note, status)

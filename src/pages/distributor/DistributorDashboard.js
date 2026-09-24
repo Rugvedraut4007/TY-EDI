@@ -312,20 +312,29 @@ function Orders({ orders, inventory, reload }) {
   };
 
   const openDispatch = (order) => {
-    const batch = inventory.find((b) => b.medicine_id === order.medicine_id && b.remaining_qty > 0);
+    const batches = inventory.filter((b) => b.medicine_id === order.medicine_id && b.remaining_qty > 0);
+    const batch = batches[0];
     setDispatchOrder(order);
-    setForm({ batch_id: batch ? String(batch.id) : "", quantity: String(order.quantity) });
+    setForm({
+      batch_id: batch ? String(batch.id) : "",
+      quantity: batch ? String(Math.min(order.quantity, batch.remaining_qty)) : "",
+    });
   };
 
   const submitDispatch = async () => {
-    if (!form.batch_id) return toast.error("Select a batch to dispatch from");
+    if (!selectedBatch) return toast.error("Select a batch to dispatch from");
+    if (invalidQty) return toast.error(`Enter a quantity between 1 and ${selectedBatch.remaining_qty}`);
     setBusy(true);
     try {
       await api.post(`/orders/${dispatchOrder.id}/dispatch`, {
         batch_id: Number(form.batch_id),
-        quantity: Number(form.quantity),
+        quantity: qty,
       });
-      toast.success("Order dispatched to pharmacist");
+      toast.success(
+        qty < dispatchOrder.quantity
+          ? `Dispatched ${qty} of ${dispatchOrder.quantity} units (partial dispatch)`
+          : "Order dispatched to pharmacist"
+      );
       setDispatchOrder(null);
       reload();
     } catch (err) {
@@ -335,9 +344,29 @@ function Orders({ orders, inventory, reload }) {
     }
   };
 
+  const rejectForStock = async () => {
+    setBusy(true);
+    try {
+      await api.post(`/orders/${dispatchOrder.id}/reject`, { note: "No stock available to fulfil this order" });
+      toast.success("Order rejected — no stock available");
+      setDispatchOrder(null);
+      reload();
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Only batches of the ordered medicine can fulfil it, so a distributor with no
+  // stock for that medicine gets an explanation instead of an empty dropdown.
   const eligibleBatches = dispatchOrder
     ? inventory.filter((b) => b.medicine_id === dispatchOrder.medicine_id && b.remaining_qty > 0)
     : [];
+  const selectedBatch = eligibleBatches.find((b) => String(b.id) === String(form.batch_id));
+  const qty = Number(form.quantity) || 0;
+  const invalidQty = !selectedBatch || qty <= 0 || qty > selectedBatch.remaining_qty;
+  const remainingAfter = selectedBatch ? selectedBatch.remaining_qty - qty : 0;
 
   return (
     <>
@@ -346,7 +375,7 @@ function Orders({ orders, inventory, reload }) {
         {orders.length === 0 ? (
           <EmptyState icon="🧾" title="No orders yet" message="Pharmacies can place orders for your medicines." />
         ) : (
-          <Table headers={["Order", "Pharmacist", "Medicine", "Qty", "Status", "Placed", ""]}>
+          <Table headers={["Order", "Pharmacist", "Medicine", "Qty", "Status", "Tracking QR", "Placed", ""]}>
             {orders.map((o) => (
               <tr key={o.id} className="hover:bg-ink-50/60">
                 <td className="td font-mono text-xs">{o.order_code}</td>
@@ -354,6 +383,9 @@ function Orders({ orders, inventory, reload }) {
                 <td className="td font-semibold">{o.medicine_name}</td>
                 <td className="td">{o.quantity}</td>
                 <td className="td"><StatusBadge status={o.status} /></td>
+                <td className="td font-mono text-xs">
+                  {o.shipment_qr ? o.shipment_qr : <span className="text-ink-300">—</span>}
+                </td>
                 <td className="td text-xs text-ink-400">{new Date(o.created_at).toLocaleDateString()}</td>
                 <td className="td">
                   <div className="flex justify-end gap-2">
@@ -379,22 +411,117 @@ function Orders({ orders, inventory, reload }) {
         subtitle={dispatchOrder ? `${dispatchOrder.medicine_name} · requested ${dispatchOrder.quantity} units` : ""}>
         {dispatchOrder && (
           <div className="space-y-4">
-            <Field label="Dispatch from batch" required>
-              <Select value={form.batch_id} onChange={(e) => setForm({ ...form, batch_id: e.target.value })}>
-                <option value="">Select a batch</option>
-                {eligibleBatches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.batch_no} · {b.remaining_qty} left {b.expiry_date ? `· exp ${new Date(b.expiry_date).toLocaleDateString()}` : ""}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Quantity to dispatch" required hint="You can send less than requested (partial dispatch)">
-              <Input type="number" min="1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} />
-            </Field>
+            {eligibleBatches.length === 0 ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <p className="text-sm font-semibold text-amber-900">
+                  You hold no {dispatchOrder.medicine_name} stock
+                </p>
+                <p className="mt-1 text-xs text-amber-700">
+                  Only the ordered medicine can fulfil this order. Receive a shipment from the manufacturer
+                  first, or reject the order so the pharmacy can order from another distributor.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <p className="label">
+                    Dispatch from batch <span className="text-danger">*</span>
+                  </p>
+                  <div className="space-y-2">
+                    {eligibleBatches.map((b) => {
+                      const active = String(b.id) === String(form.batch_id);
+                      return (
+                        <button
+                          key={b.id}
+                          type="button"
+                          onClick={() =>
+                            setForm({
+                              batch_id: String(b.id),
+                              quantity: String(Math.min(dispatchOrder.quantity, b.remaining_qty)),
+                            })
+                          }
+                          className={[
+                            "flex w-full items-center gap-3 rounded-xl border p-3 text-left transition",
+                            active
+                              ? "border-brand-400 bg-brand-50 ring-1 ring-brand-300"
+                              : "border-ink-100 hover:border-brand-200 hover:bg-ink-50",
+                          ].join(" ")}
+                        >
+                          <span
+                            className={[
+                              "grid h-4 w-4 shrink-0 place-items-center rounded-full border-2",
+                              active ? "border-brand-600 bg-brand-600" : "border-ink-300",
+                            ].join(" ")}
+                          >
+                            {active && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-semibold text-ink-800">
+                              Batch {b.batch_no}
+                              {b.parent_qr_id && (
+                                <span className="ml-2 rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-purple-700">
+                                  split package
+                                </span>
+                              )}
+                            </span>
+                            <span className="block truncate font-mono text-[11px] text-ink-400">{b.qr_id}</span>
+                            <span className="block text-[11px] text-ink-500">
+                              {b.remaining_qty} units available
+                              {b.expiry_date ? ` · expires ${new Date(b.expiry_date).toLocaleDateString()}` : ""}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <Field
+                  label="Quantity to dispatch"
+                  required
+                  hint={`Requested ${dispatchOrder.quantity} units — send less for a partial dispatch`}
+                  error={invalidQty && selectedBatch ? `Enter 1 – ${selectedBatch.remaining_qty}` : ""}
+                >
+                  <Input
+                    type="number"
+                    min="1"
+                    max={selectedBatch ? selectedBatch.remaining_qty : undefined}
+                    value={form.quantity}
+                    onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+                  />
+                </Field>
+
+                {selectedBatch && !invalidQty && (
+                  <div className="rounded-xl bg-ink-50 p-4 font-mono text-xs leading-relaxed text-ink-600">
+                    Package {selectedBatch.batch_no}:{" "}
+                    <span className="font-bold text-ink-900">{selectedBatch.remaining_qty} units</span>
+                    <br />├── {qty} units → {dispatchOrder.pharmacist_org || dispatchOrder.pharmacist_name}
+                    <br />└── {remainingAfter} units → your inventory
+                  </div>
+                )}
+
+                {selectedBatch && !invalidQty && qty < dispatchOrder.quantity && (
+                  <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+                    Partial order: the pharmacy asked for {dispatchOrder.quantity} units and you are sending {qty}.
+                  </p>
+                )}
+
+                <p className="text-xs text-ink-400">
+                  A new QR code is issued for the dispatched portion and stays with the package until the
+                  pharmacy scans it in.
+                </p>
+              </>
+            )}
+
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setDispatchOrder(null)}>Cancel</Button>
-              <Button loading={busy} onClick={submitDispatch}>Dispatch</Button>
+              {eligibleBatches.length === 0 ? (
+                <Button variant="danger" loading={busy} onClick={rejectForStock}>Reject order</Button>
+              ) : (
+                <Button loading={busy} disabled={invalidQty} onClick={submitDispatch}>
+                  Dispatch{qty > 0 && !invalidQty ? ` ${qty} units` : ""}
+                </Button>
+              )}
             </div>
           </div>
         )}
